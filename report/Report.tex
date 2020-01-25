@@ -127,7 +127,7 @@ When developping the different formula, we will have to set boundaries condition
 \newpage
 \section{Dirichlet }\label{Dpart}
 
-\indent $ \forall  n \in  \ldbrack  1 , N  \rdbrack , \forall  i \in  \ldbrack  1,x_{max}  \rdbrack, $\\
+\indent $ \forall  n \in  \ldbrack  1 , N  \rdbrack , \forall  i \in  \ldbrack  0,x_{max}  \rdbrack, $\\
 
 \begin{align}
 f_{i}^{n} &= f(t_{n},x_{i}) \\
@@ -171,6 +171,7 @@ Then we obtain :
  
 \begin{align}
 \begin{split}
+\label{matsys}
  \begin{pmatrix}
 1 & 0 & 0 & 0 & 0 & \cdots & 0 & 0\\
 B_{+}^{(1-\theta)} & A_{1}^{(1-\theta)} & B_{-}^{(1-\theta)} & 0 & 0 & \cdots & 0 & 0\\
@@ -203,6 +204,14 @@ f_{x_{max}}^{n}\\
 \end{split}
 \end{align}
 
+The previous system (equation \ref{matsys}) is equivalent to :
+ \begin{align}
+ A f^{n+1} &= B f^{n}
+ \end{align}
+
+To solve this matrix system, we use Thomas algorithm. This algorithm is used to solve matrix systems with tridiagonal matrix.
+For such systems, the solution can be obtained in $O(n)$ operations instead of $O(n^{3})$ required by Gaussian elimination.
+To see the complete method : \href{https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm}{Wikipedia Thomas Algorithm.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -212,7 +221,7 @@ f_{x_{max}}^{n}\\
 
 
 $
-\forall  n \in  \ldbrack  1 , N  \rdbrack , \forall  i \in  \ldbrack  1,x_{max}  \rdbrack,    \\
+\forall  n \in  \ldbrack  1 , N  \rdbrack , \forall  i \in  \ldbrack  0,x_{max}  \rdbrack,    \\
 $
 
 \begin{align}
@@ -220,8 +229,8 @@ $
 \frac{df}{dx} (t_{n},x_{0}) = \frac{f_{1}^{n}-f_{0}^{n}}{dx} &\Leftrightarrow f_{0}^{n} = f_{1}^{n} - k_{1} dx \label{formula2} 
 \end{align}
 \begin{align}
-\frac{df}{dx} (t_{n}, x_{max}) &= k_{2} \\
-\frac{df}{dx} (t_{n},x_{0}) = \frac{f_{x_{max}}^{n}-f_{x_{max}-1}^{n}}{dx} &\Leftrightarrow f_{x_{max}}^{n} = f_{x_{max}-1}^{n} + k_{2} dx \label{formula3} 
+\frac{df}{dx} (t_{n}, x_{x_{max}}) &= k_{2} \\
+\frac{df}{dx} (t_{n},x_{x_{max}}) = \frac{f_{x_{max}}^{n}-f_{x_{max}-1}^{n}}{dx} &\Leftrightarrow f_{x_{max}}^{n} = f_{x_{max}-1}^{n} + k_{2} dx \label{formula3} 
 \end{align}
 
 Using the same formula (equation \ref{formula0}):
@@ -292,7 +301,9 @@ k_{2}\\
 \newpage
 \section{Userguide} 
 
+\subsection{Volatility and Rates inputs}
 Our program offers the possibility to the user to input the volatility matrix and the rates vector in an excel (csv) file. To do so, the program will ask the user if he wants to use this feature (see figure \ref{terminal1}). If the user answers "yes" (y) then the program creates two .csv files to be completed by the user. One for the volatility and the other one for the rates. To input its parameters, the user can open the .csv file in excel, and convert the column A "from text to columns". User will find an empty matrix with the X in lines (all spot prices) and Y in columns (all the times considered). Once saved the user continues to run the program by pressing "ENTER".\\
+User can choose to change the separators in the $.csv$ files.
 
 \begin{figure}[H]
 \begin{center}
@@ -300,6 +311,14 @@ Our program offers the possibility to the user to input the volatility matrix an
 \caption{Options available}\label{terminal1}
 \end{center}
 \end{figure}
+
+\subsection{Payoff function}
+
+The function payoff takes three arguments : a name for the chosen payoff, a vector (strikes) and a function. All these parameters are optional. If the user doesn't enter anything, the payoff will be $g=S$. The user can enter a name of payoff recognised by the program. The registered payoffs are : "Call", "Put", "Call Spread", "Put Spread", "Straddle", "Strangle". Once the payoff's name chosen, the user has to enter a parameter for the strike(s) of the payoff chosen. If several ones are entered, the program will only take into account the first one for a single strike strategy ("Call", "Put"). For multiple strike strategies ("Call Spread", "Put Spread", "Straddle", "Strangle") the user has to enter the strikes from the smallest to the biggest.\\
+If the user wants to generate a customised payoff, he has to input a different name (one not recognised by the program). Then enter the different strikes and finally the function of the payoff.
+
+
+
 
 
 
