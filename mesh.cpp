@@ -10,6 +10,7 @@
 #include <cmath>
 #include <string>
 
+
 mesh::mesh(double S, double T, int& n_x, int n_t, double sigma)
 	: m_nt(n_t), m_S(S), m_sigma(sigma)
 {
@@ -78,7 +79,7 @@ void mesh::export_empty_rate(std::string f_name) const
 	f.close();
 }
 
-void mesh::read_sigma(std::vector<std::vector<double>>& M) const
+void mesh::read_sigma(std::vector<std::vector<double>>& M, char sep) const
 {
 	
 	// Got it from the internet and then adapted for the code
@@ -87,21 +88,21 @@ void mesh::read_sigma(std::vector<std::vector<double>>& M) const
 	std::string line;
 	int cpt_r = 0;
 
-	while (std::getline( in, line ))                        // read a whole line of the file
+	while (std::getline(in, line))                        // read a whole line of the file
 	{
 		if (cpt_r > 0)
 		{
-			std::stringstream ss( line );                   // put it in a stringstream (internal stream)
+			std::stringstream ss(line);                   // put it in a stringstream (internal stream)
 			std::vector<double> row;
 			std::string data;
-			while (std::getline( ss, data, ';' ))           // read (string) items up to a comma
+			while (std::getline(ss, data, sep))           // read (string) items up to a comma
 			{
-				row.push_back( std::stod( data ) );         // use stod() to convert to double; put in row vector
+				row.push_back(std::stod(data));         // use stod() to convert to double; put in row vector
 			}
 			if ( row.size() > 0)
 			{
 				row.erase(row.begin(), row.begin()+1);      // Delete first col which is the x
-				M.push_back( row ); 				        // add non-empty rows to matrix
+				M.push_back(row); 				        // add non-empty rows to matrix
 			}	
 		}
 
@@ -109,22 +110,22 @@ void mesh::read_sigma(std::vector<std::vector<double>>& M) const
 	}
 }
 
-void mesh::read_rate(std::vector<double>& r) const
+void mesh::read_rate(std::vector<double>& r, char sep) const
 {
 	std::ifstream in("rate.csv");
 	std::string line;
 	int cpt_r = 0;
 
-	while (std::getline( in, line ))                        // read a whole line of the file
+	while (std::getline(in, line))                        // read a whole line of the file
 	{
 		if (cpt_r > 0)
 		{
-			std::stringstream ss( line );                   // put it in a stringstream (internal stream)
+			std::stringstream ss(line);                   // put it in a stringstream (internal stream)
 			std::vector<double> row;
 			std::string data;
-			while (std::getline( ss, data, ';' ))           // read (string) items up to a comma
+			while (std::getline(ss, data, sep))           // read (string) items up to a comma
 			{
-				r.push_back( std::stod( data ) );         // use stod() to convert to double; put in row vector
+				r.push_back(std::stod(data));         // use stod() to convert to double; put in row vector
 			}
 
 		}

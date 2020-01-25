@@ -25,6 +25,8 @@ int main(int argc, char* argv[])
 	int nx = 1000;
 	int nt = 252;
 	
+	char delim = ';'; // Change delim to modify the csv separator of sigma.csv and rate.csv
+	
 	std::vector<double> r;
 	std::vector<std::vector<double>> sigma;
 	
@@ -46,7 +48,7 @@ int main(int argc, char* argv[])
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		std::cin.get();
 		
-		grille.read_sigma(sigma);
+		grille.read_sigma(sigma, delim);
 		std::cout << "Sigma read successfully" << std::endl;
 	}
 	else
@@ -78,7 +80,7 @@ int main(int argc, char* argv[])
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		std::cin.get();
 		
-		grille.read_rate(r);
+		grille.read_rate(r, delim);
 		std::cout << "Rate read successfully" << std::endl;
 	}
 	else
@@ -104,8 +106,8 @@ int main(int argc, char* argv[])
 	
 	std::cout << "Time taken solving : " << std::chrono::duration <double, std::milli> (end - start).count() << " ms" << std::endl;
 	
-	solver_model.export_csv();
-	solver_model.print_results();
+	solver_model.export_csv(); // Export the results to a csv file called output.csv
+	// solver_model.print_results(); // Uncomment this line to display the results in the terminal
 	}
 	catch(std::exception& e)
 	{
