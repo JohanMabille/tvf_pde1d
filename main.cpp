@@ -105,13 +105,14 @@ int main(int argc, char* argv[])
 	std::cout << "Time taken solving : " << std::chrono::duration <double, std::milli> (end - start).count() << " ms" << std::endl;
 	
 	solver_model.export_csv();
+	solver_model.print_results();
 	}
 	catch(std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
 		std::cout << "Exiting programme without solving." << std::endl;
 	}
-	//solver_model.print_results();
+	
 	
 	return 0;
 
