@@ -12,9 +12,9 @@ public:
 	
 	void print_mesh() const;
 	void export_empty_sigma(std::string f_name = "sigma.csv") const;
-	void read_sigma(std::vector<std::vector<double>>& M) const;
+	void read_sigma(std::vector<std::vector<double>>& M, char sep) const;
 	void export_empty_rate(std::string f_name = "rate.csv") const;
-	void read_rate(std::vector<double>& r) const;
+	void read_rate(std::vector<double>& r, char sep) const;
 	
 	double get_dt() const;
 	double get_dx() const;
