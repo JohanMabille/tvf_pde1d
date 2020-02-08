@@ -15,6 +15,9 @@ public:
 	void export_csv(std::string f_name = "output.csv") const;
 	void print_results() const;
 	
+        // Design: Why public members instead of private ones
+        // with getters (and not setters) ?
+        // Where is the theta (greek)?
 	std::vector<double> solution;
 	std::vector<double> delta;
 	std::vector<double> gamma;
@@ -32,6 +35,7 @@ private:
 	void product_inverse(std::vector<double>& x, std::vector<std::vector<double>>& trig_mat, std::vector<double>& d);
 	void trig_matmul(std::vector<double>& res, std::vector<std::vector<double>>& trig_mat, std::vector<double>& x);
 	
+        // Implementation: unused member
 	std::vector<std::vector<double>> s_cdt;
 	
 };

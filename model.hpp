@@ -2,7 +2,10 @@
 #define MODEL_HPP
 #include "payoff.hpp"
 
-
+// Design: this could get more flexibility. The model should be an abstract class
+// with virtual methods. The current model becomes the default implementation,
+// you can consider other models (constant vol and constant rate, mix of constant / variable
+// rates and vol, etc ...).
 class model
 {
 public:
