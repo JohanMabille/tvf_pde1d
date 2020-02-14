@@ -43,6 +43,9 @@ void bound::adapt_mat(std::vector<std::vector<double>>& mat, std::vector<std::ve
 	double dx = b_mesh.get_dx();
 	double dt = b_mesh.get_dt();
 	
+        // Design: This is WAY TOO COMPLICATED!
+        // Compute the tridiag system (LHS matrix and RHS vector) first, and then apply the
+        // boundary conditions on them.
 	if (CaseSensitiveIsEqual(b_method,"Neumann"))
 	{
 	

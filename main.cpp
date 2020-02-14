@@ -32,8 +32,16 @@ int main(int argc, char* argv[])
 	
 	std::string user_input;
 	
+        // Design: sigma should not be hardcoded but asked to the user (at K, Mat)
+        // if the user wants to input a matrix.
 	mesh grille(S, mat, nx, nt, 0.2);
 	
+        // This is a good start for giving the user the ability to input her own
+        // data. However, this still lacks flexibility. A more complete approach
+        // would be to provide a DataReader base class, and different implementations:
+        // one that reads data from a file, one that asks on the console, on that could
+        // read from a DataBase (the idea is not to provide all possible implementations,
+        // but to provide an interface easy to implement for who wants to add a data source).
 	while (user_input != "y" && user_input != "n")
 	{
 		std::cout <<  "Do you want to input your own sigma matrix ? y/n ";
@@ -106,8 +114,8 @@ int main(int argc, char* argv[])
 	
 	std::cout << "Time taken solving : " << std::chrono::duration <double, std::milli> (end - start).count() << " ms" << std::endl;
 	
-	solver_model.export_csv(); // Export the results to a csv file called output.csv
-	// solver_model.print_results(); // Uncomment this line to display the results in the terminal
+	//solver_model.export_csv(); // Export the results to a csv file called output.csv
+	solver_model.print_results(); // Uncomment this line to display the results in the terminal
 	}
 	catch(std::exception& e)
 	{

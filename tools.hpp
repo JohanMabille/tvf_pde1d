@@ -6,5 +6,6 @@
 
 double sqr(double x);
 void size_check(const std::vector<std::vector<double>>& sigma, const std::vector<double>& r, int nt, int nx);
+// Implementation: take string by const ref
 bool CaseSensitiveIsEqual(std::string str1, std::string str2);
 #endif

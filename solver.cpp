@@ -45,7 +45,6 @@ void solver_edp::solve_pde(bool vega_bool)
 
         for(int i = s_mesh.get_nt() - 1; i > 0; --i)
         {
-                
 			s_pde_model.get_vol_col(sigma_plus, i);
 			s_pde_model.get_vol_col(sigma, i-1);
 			r_plus = s_pde_model.get_r(i);
@@ -70,9 +69,11 @@ void solver_edp::solve_pde(bool vega_bool)
 			double dxi2 = exp(s_min+(i+1)*s_mesh.get_dx()) - exp(s_min+(i-1)*s_mesh.get_dx());
 			
 			delta[i] = (solution[i+1] - solution[i-1])/(dxi2);
+                        // Implementation: should be out of the loop
 			delta[0] = delta[1];
 
 			gamma[i] = (delta[i] - delta[i-1])/dxi;
+                        // Implementation: should be out of the loop
 			gamma[0] = gamma[1];
         }
         
@@ -116,6 +117,17 @@ void solver_edp::pde_matrix(std::vector<std::vector<double>>& mat, std::vector<s
 
         for(int j = 1; j<nx-1; ++j)
         {
+            // Design: encapsulating computation of cofficients in a single function is good. You could
+            // go further and make your solver even more generic. In the end, what you solve is
+            // df / dt = a(x, t) df/dx2 + b(x, t) df/dx + c(x, t) f + d(x, t)
+            // You can provide a pde_model class (abstract) which computes and returns coefficients
+            // a, b, c and d. This models depends on the stock model (your current model class) which
+            // is responsible for returning the different financial quotities (vol and rate here, div and
+            // repo in a more realistic modelization).
+            // This way your solver is a pure mathematic bloc, you model reamins purely financial, and your
+            // pde_model is the bridge between these layers. It then becomes easy to plug other financial
+            // models or to solve other fianncial PDEs as long as they have the same form (i.e. generalized
+            // heat equation).
                 mat[1][j] = 1 - dt*(1-theta)*(sqr(sigma_plus[j]/dx) + r_plus);
                 mat[0][j] = dt*(1-theta)/(2*dx)*(sqr(sigma_plus[j])/dx + sqr(sigma_plus[j])/2. - r_plus);
                 mat[2][j] = dt*(1-theta)/(2*dx)*(sqr(sigma_plus[j])/dx - sqr(sigma_plus[j])/2. + r_plus);
@@ -126,8 +138,10 @@ void solver_edp::pde_matrix(std::vector<std::vector<double>>& mat, std::vector<s
         }
 }
 
+// Implementation: product_inverse should be a const method
 void solver_edp::product_inverse(std::vector<double>& x, std::vector<std::vector<double>>& trig_mat, std::vector<double>& d)
 {
+        // Implementation: prefer to declare variable in the scope where they are used
         double w;
         
         for(int i=1; i< trig_mat[0].size(); ++i)
@@ -145,6 +159,8 @@ void solver_edp::product_inverse(std::vector<double>& x, std::vector<std::vector
         }
 }
 
+// Implementation: trig_mat and x should be const reference
+// Implementation: trig_matmul should be a const method
 void solver_edp::trig_matmul(std::vector<double>& res, std::vector<std::vector<double>>& trig_mat, std::vector<double>& x)
 {       
         for(int i=1;i<trig_mat[0].size()-1;i++)
@@ -160,66 +176,44 @@ void solver_edp::print_results() const
 {
         double sMin = s_mesh.get_Smin();
         double dx = s_mesh.get_dx();
-        double prix;
         
+        bool is_call = CaseSensitiveIsEqual(s_f.getname(),"Call");
+        bool is_put = CaseSensitiveIsEqual(s_f.getname(),"Put");
+        bool is_vanilla = is_call || is_put;
+        size_t prix_size = is_vanilla ? solution.size() : size_t(0);
+
+        // Implementation: Avoid code duplication, even in print functions!
+        // Performance is not a matter here, so you can allocagte temporaries.
+        // Design: This function should be outside of the solver. the solver is responsible
+        // for computing and providing the results, not presenting them.
+        std::vector<double> prix(prix_size);
+        for(size_t i = 0; i < prix.size(); ++i)
+        {
+            prix[i] = bs_price(exp(sMin+i*dx)/exp(-s_pde_model.get_r_avg()*s_mesh.get_mat()),
+                               s_mesh.get_S(),
+                               s_mesh.get_sigma(),
+                               s_mesh.get_mat(), 1)*exp(-s_pde_model.get_r_avg()*s_mesh.get_mat());
+        }
+
         std::cout << std::fixed << std::setprecision( 5 );
-        
-        if (CaseSensitiveIsEqual(s_f.getname(),"Call"))
+
+        for(size_t i = 0; i < solution.size(); ++i)
         {
-                if (vega.empty())
-                {
-                        for(int i=0; i<solution.size(); ++i)
-                        {
-                                prix = bs_price(exp(sMin+i*dx)/exp(-s_pde_model.get_r_avg()*s_mesh.get_mat()), s_mesh.get_S(), s_mesh.get_sigma(), s_mesh.get_mat(), 1)*exp(-s_pde_model.get_r_avg()*s_mesh.get_mat());
-                                std::cout << exp(sMin+i*dx) << ", sol = " << solution[i] << ", theory = " << prix << ", difference = " << prix - solution[i] << ", delta = " << delta[i] << ", gamma = " << gamma[i] << std::endl;
-                        }
-                }
-                else
-                {
-                        for(int i=0; i<solution.size(); ++i)
-                        {
-                                prix = bs_price(exp(sMin+i*dx)/exp(-s_pde_model.get_r_avg()*s_mesh.get_mat()), s_mesh.get_S(), s_mesh.get_sigma(), s_mesh.get_mat(), 1)*exp(-s_pde_model.get_r_avg()*s_mesh.get_mat());
-                                std::cout << exp(sMin+i*dx) << ", sol = " << solution[i] << ", theory = " << prix << ", difference = " << prix - solution[i] << ", delta = " << delta[i] << ", gamma = " << gamma[i] << ", vega = " << vega[i] << std::endl;
-                        }
-                }
+            std::cout << exp(sMin + i*dx)
+                      << ", sol = " << solution[i];
+            if(is_vanilla)
+            {
+                std::cout << ", theory = " << prix[i]
+                          << ", difference = " << prix[i] - solution[i];
+            }
+            std::cout << ", delta = " << delta[i]
+                      << ", gamma = " << gamma[i];
+            if(!vega.empty())
+            {
+                std::cout << ", vega = " << vega[i];
+            }
+            std::cout << std::endl;
         }
-        else if (CaseSensitiveIsEqual(s_f.getname(),"Put"))
-        {
-                if (vega.empty())
-                {
-                        for(int i=0; i<solution.size(); ++i)
-                        {
-                                prix = bs_price(exp(sMin+i*dx)/exp(-s_pde_model.get_r_avg()*s_mesh.get_mat()), s_mesh.get_S(), s_mesh.get_sigma(), s_mesh.get_mat(), 0)*exp(-s_pde_model.get_r_avg()*s_mesh.get_mat());
-                                std::cout << exp(sMin+i*dx) << ", sol = " << solution[i] << ", theory = " << prix << ", difference = " << prix - solution[i] << ", delta = " << delta[i] << ", gamma = " << gamma[i] << std::endl;
-                        }
-                }
-                else
-                {
-                        for(int i=0; i<solution.size(); ++i)
-                        {
-                                prix = bs_price(exp(sMin+i*dx)/exp(-s_pde_model.get_r_avg()*s_mesh.get_mat()), s_mesh.get_S(), s_mesh.get_sigma(), s_mesh.get_mat(), 0)*exp(-s_pde_model.get_r_avg()*s_mesh.get_mat());
-                                std::cout << exp(sMin+i*dx) << ", sol = " << solution[i] << ", theory = " << prix << ", difference = " << prix - solution[i] << ", delta = " << delta[i] << ", gamma = " << gamma[i] << ", vega = " << vega[i] << std::endl;
-                        }
-                }       
-        }
-        else
-        {
-                if (vega.empty())
-                {
-                        for(int i=0; i<solution.size(); ++i)
-                        {
-                                std::cout << exp(sMin+i*dx) << ", sol = " << solution[i] << ", delta = " << delta[i] << ", gamma = " << gamma[i] << std::endl;
-                        }
-                }
-                else
-                {
-                        for(int i=0; i<solution.size(); ++i)
-                        {
-                                std::cout << exp(sMin+i*dx) << ", sol = " << solution[i] << ", delta = " << delta[i] << ", gamma = " << gamma[i] << ", vega = " << vega[i] << std::endl;
-                        }
-                }               
-        }
-                
 }
 
 void solver_edp::export_csv(std::string f_name) const
